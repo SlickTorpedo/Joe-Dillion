@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+            min-height: 100vh;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .overview-card {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-5px);
+            border-color: #dc2626;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.2);
+        }
+
+        .overview-card h3 {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .overview-card .value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+
+        .overview-card .subtitle {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .charts-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 2em;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 300;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .chart-title {
+            font-size: 1.4em;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .week-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .week-day {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+            border: 2px solid #404040;
+            color: #a0a0a0;
+            transition: all 0.3s ease;
+        }
+
+        .week-day.completed {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .week-day.today {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .progress-bar-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(40, 40, 40, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            transition: width 1s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .achievement {
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .achievement:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        .achievement.locked {
+            background: linear-gradient(45deg, #404040, #2a2a2a);
+            color: #666;
+        }
+
+        .recent-workouts {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 40px;
+        }
+
+        .workout-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 10px;
+            border-left: 4px solid #dc2626;
+            transition: all 0.3s ease;
+        }
+
+        .workout-item:hover {
+            background: rgba(30, 30, 30, 0.9);
+            transform: translateX(5px);
+        }
+
+        .workout-info h4 {
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .workout-info p {
+            color: #a0a0a0;
+            font-size: 0.9em;
+        }
+
+        .workout-stats {
+            text-align: right;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            color: #a0a0a0;
+            padding: 40px;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #dc2626;
+            text-align: center;
+        }
+
+        .export-section {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .export-btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 10px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+        }
+
+        .gym-status-dashboard {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .gym-open {
+            background: linear-gradient(45deg, #374151, #4b5563);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .gym-closing-soon {
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            animation: pulse 2s infinite;
+        }
+
+        .gym-closed {
+            background: linear-gradient(45deg, #6b7280, #4b5563);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .username-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .username-modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .username-modal-content h2 {
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .username-modal-content p {
+            color: #a0a0a0;
+            margin-bottom: 20px;
+        }
+
+        .username-input-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .username-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #404040;
+            border-radius: 8px;
+            background: rgba(20, 20, 20, 0.8);
+            color: #ffffff;
+            font-size: 1.1em;
+        }
+
+        .username-input-group input:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .username-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .username-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        .username-note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 15px;
+        }
+
+        .user-info {
+            background: rgba(30, 30, 30, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info .username {
+            color: #dc2626;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .change-user-btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: #a0a0a0;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .change-user-btn:hover {
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .overview-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+        <!-- Username Modal -->
+        <div id="username-modal" class="username-modal" style="display: none;">
+            <div class="username-modal-content">
+                <h2>Welcome to Workout Dashboard</h2>
+                <p>Enter your username to view your progress</p>
+                <div class="username-input-group">
+                    <input type="text" id="username-input" placeholder="Enter your username" maxlength="20">
+                    <button onclick="setUsername()" class="username-btn">Continue</button>
+                </div>
+                <p class="username-note">Your username will be saved and your progress will be preserved across devices</p>
+            </div>
+        </div>
+
+        <div class="container">
+        <div class="header">
+            <h1>WORKOUT DASHBOARD</h1>
+            <div id="user-info" class="user-info" style="display: none;">
+                <span>Dashboard for <span class="username" id="current-username"></span></span>
+                <button class="change-user-btn" onclick="changeUser()">Change User</button>
+            </div>
+            <p>Track your progress and stay motivated</p>
+            
+            <div class="nav-buttons">
+                <a href="/" class="nav-btn">🏋️ Start Workout</a>
+                <a href="/export" class="nav-btn" onclick="exportData(); return false;">📊 Export Data</a>
+            </div>
+        </div>
+
+        <div id="gym-status-dashboard" class="gym-status-dashboard">
+            <h3>Gym Status</h3>
+            <div id="gym-status-display">Loading...</div>
+        </div>
+
+        <div id="overview-loading" class="loading">Loading your workout overview...</div>
+        
+        <div id="overview-content" style="display: none;">
+            <!-- Overview Stats -->
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <h3>Total Workouts</h3>
+                    <div class="value" id="total-workouts">0</div>
+                    <div class="subtitle">Sessions completed</div>
+                </div>
+                <div class="overview-card">
+                    <h3>Total Time</h3>
+                    <div class="value" id="total-time">0h</div>
+                    <div class="subtitle">Time invested</div>
+                </div>
+                <div class="overview-card">
+                    <h3>Current Streak</h3>
+                    <div class="value" id="current-streak">0</div>
+                    <div class="subtitle">Days in a row</div>
+                </div>
+                <div class="overview-card">
+                    <h3>Max Weight</h3>
+                    <div class="value" id="max-weight">0</div>
+                    <div class="subtitle">Pounds lifted</div>
+                </div>
+            </div>
+
+            <!-- Weekly Progress -->
+            <div class="charts-section">
+                <h2 class="section-title">Weekly Progress</h2>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3 class="chart-title">This Week's Activity</h3>
+                        <div class="week-progress" id="week-progress">
+                            <!-- Days will be populated by JavaScript -->
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="weekly-progress-bar"></div>
+                            </div>
+                            <div class="progress-text" id="weekly-progress-text">0/7 workouts this week</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3 class="chart-title">Monthly Overview</h3>
+                        <div id="monthly-stats">
+                            <div style="margin: 20px 0;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span>This Month:</span>
+                                    <span id="month-workouts" style="color: #dc2626; font-weight: bold;">0 workouts</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span>Monthly Goal:</span>
+                                    <span style="color: #a0a0a0;">20 workouts</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="monthly-progress-bar"></div>
+                                </div>
+                                <div class="progress-text" id="monthly-progress-text">0% of monthly goal</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="charts-section">
+                <h2 class="section-title">Achievements</h2>
+                <div class="chart-card">
+                    <div class="achievements-grid" id="achievements-grid">
+                        <!-- Achievements will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Workouts -->
+            <div class="charts-section">
+                <h2 class="section-title">Recent Workouts</h2>
+                <div class="recent-workouts">
+                    <div id="recent-workouts-list">
+                        <!-- Recent workouts will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="export-section">
+                <h3>Export Your Data</h3>
+                <p style="color: #a0a0a0; margin: 15px 0;">Download your complete workout history and statistics</p>
+                <button class="export-btn" onclick="exportData()">📁 Download JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User management
+        function getUserId() {
+            const username = localStorage.getItem('workoutUsername');
+            if (!username) {
+                return null; // Will trigger username modal
+            }
+            return `user_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        }
+
+        function getUsername() {
+            return localStorage.getItem('workoutUsername');
+        }
+
+        async function setUsername() {
+            const usernameInput = document.getElementById('username-input');
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            if (username.length < 2) {
+                alert('Username must be at least 2 characters long');
+                return;
+            }
+            
+            // Validate username (alphanumeric and basic chars only)
+            if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, hyphens, and underscores');
+                return;
+            }
+            
+            try {
+                // Check if username exists by trying to get stats
+                const userId = `user_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                const existingStats = await apiCall(`/workouts/stats/${userId}`);
+                
+                // Store username
+                localStorage.setItem('workoutUsername', username);
+                
+                // Hide modal and show user info
+                document.getElementById('username-modal').style.display = 'none';
+                document.getElementById('current-username').textContent = username;
+                document.getElementById('user-info').style.display = 'flex';
+                
+                // If user has existing data, welcome them back
+                if (existingStats && existingStats.success && existingStats.totalWorkouts > 0) {
+                    setTimeout(() => {
+                        alert(`Welcome back, ${username}! Loading your dashboard...`);
+                    }, 500);
+                }
+                
+                // Initialize the dashboard
+                init();
+                
+            } catch (error) {
+                console.error('Error setting username:', error);
+                alert('There was an error setting your username. Please try again.');
+            }
+        }
+
+        function changeUser() {
+            if (confirm('Are you sure you want to change users? This will switch to a different account.')) {
+                localStorage.removeItem('workoutUsername');
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('username-input').value = '';
+                document.getElementById('username-modal').style.display = 'flex';
+                document.getElementById('overview-content').style.display = 'none';
+                document.getElementById('overview-loading').style.display = 'block';
+                document.getElementById('overview-loading').textContent = 'Please enter your username to continue...';
+                setupUsernameInput();
+            }
+        }
+
+        // Check for Enter key in username input
+        function setupUsernameInput() {
+            const usernameInput = document.getElementById('username-input');
+            usernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    setUsername();
+                }
+            });
+            
+            // Focus the input when modal opens
+            setTimeout(() => {
+                usernameInput.focus();
+            }, 100);
+        }
+
+        // API helper function
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(`/api${endpoint}`, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                return null;
+            }
+        }
+
+        // Update gym status
+        async function updateGymStatus() {
+            try {
+                const response = await fetch('/gym-status');
+                const gymStatus = await response.json();
+                
+                if (gymStatus.success) {
+                    const statusDisplay = document.getElementById('gym-status-display');
+                    statusDisplay.className = `gym-${gymStatus.status}`;
+                    statusDisplay.innerHTML = gymStatus.message;
+                }
+            } catch (error) {
+                console.error('Failed to get gym status:', error);
+                document.getElementById('gym-status-display').innerHTML = 'Unable to check gym status';
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            const userId = getUserId();
+            const overviewLoading = document.getElementById('overview-loading');
+            const overviewContent = document.getElementById('overview-content');
+
+            try {
+                // Load all data in parallel
+                const [stats, achievements, history] = await Promise.all([
+                    apiCall(`/workouts/stats/${userId}`),
+                    apiCall(`/workouts/achievements/${userId}`),
+                    apiCall(`/workouts/history/${userId}?limit=10`)
+                ]);
+
+                // Update overview stats
+                if (stats && stats.success) {
+                    document.getElementById('total-workouts').textContent = stats.totalWorkouts || 0;
+                    
+                    const hours = Math.floor((stats.totalTimeMinutes || 0) / 60);
+                    const minutes = (stats.totalTimeMinutes || 0) % 60;
+                    document.getElementById('total-time').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                    
+                    document.getElementById('current-streak').textContent = stats.currentStreak || 0;
+                    document.getElementById('max-weight').textContent = (stats.maxWeight || 0) + ' lbs';
+
+                    // Update weekly progress
+                    updateWeeklyProgress(stats.thisWeekWorkouts || 0);
+                    
+                    // Update monthly progress
+                    updateMonthlyProgress(history?.workouts || []);
+                }
+
+                // Update achievements
+                if (achievements && achievements.success) {
+                    updateAchievements(achievements.achievements || []);
+                }
+
+                // Update recent workouts
+                if (history && history.success) {
+                    updateRecentWorkouts(history.workouts || []);
+                }
+
+                // Show content
+                overviewLoading.style.display = 'none';
+                overviewContent.style.display = 'block';
+
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                overviewLoading.innerHTML = '<div class="error">Failed to load dashboard data. Please refresh the page.</div>';
+            }
+        }
+
+        // Update weekly progress visualization
+        function updateWeeklyProgress(thisWeekWorkouts) {
+            const weekProgress = document.getElementById('week-progress');
+            const progressBar = document.getElementById('weekly-progress-bar');
+            const progressText = document.getElementById('weekly-progress-text');
+            
+            const today = new Date();
+            const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
+            const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            
+            weekProgress.innerHTML = '';
+            
+            for (let i = 0; i < 7; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'week-day';
+                dayElement.textContent = days[i];
+                
+                if (i === currentDay) {
+                    dayElement.classList.add('today');
+                }
+                
+                // For demo purposes, mark days as completed based on thisWeekWorkouts
+                // In a real app, you'd check actual workout dates
+                if (i < thisWeekWorkouts) {
+                    dayElement.classList.add('completed');
+                }
+                
+                weekProgress.appendChild(dayElement);
+            }
+            
+            const progressPercentage = (thisWeekWorkouts / 7) * 100;
+            progressBar.style.width = progressPercentage + '%';
+            progressText.textContent = `${thisWeekWorkouts}/7 workouts this week`;
+        }
+
+        // Update monthly progress
+        function updateMonthlyProgress(workouts) {
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            const monthlyWorkouts = workouts.filter(workout => {
+                const workoutDate = new Date(workout.endTime || workout.startTime);
+                return workoutDate >= firstDayOfMonth;
+            }).length;
+            
+            document.getElementById('month-workouts').textContent = `${monthlyWorkouts} workouts`;
+            
+            const monthlyGoal = 20; // Target: ~5 workouts per week
+            const monthlyProgress = Math.min((monthlyWorkouts / monthlyGoal) * 100, 100);
+            
+            document.getElementById('monthly-progress-bar').style.width = monthlyProgress + '%';
+            document.getElementById('monthly-progress-text').textContent = `${Math.round(monthlyProgress)}% of monthly goal`;
+        }
+
+        // Update achievements display
+        function updateAchievements(userAchievements) {
+            const achievementsGrid = document.getElementById('achievements-grid');
+            
+            const allAchievements = [
+                { id: 'first-workout', name: 'First Workout', description: 'Complete your first workout' },
+                { id: 'ten-workouts', name: '10 Workouts', description: 'Complete 10 total workouts' },
+                { id: 'fifty-workouts', name: '50 Workouts', description: 'Complete 50 total workouts' },
+                { id: 'hundred-workouts', name: '100 Workouts', description: 'Complete 100 total workouts' },
+                { id: 'heavy-lifter', name: 'Heavy Lifter', description: 'Lift 25+ pounds' },
+                { id: 'serious-lifter', name: 'Serious Lifter', description: 'Lift 50+ pounds' },
+                { id: 'marathon', name: 'Marathon', description: 'Complete 5+ hours total' },
+                { id: 'dedication', name: 'Dedication', description: 'Complete 16+ hours total' },
+                { id: 'week-streak', name: '7-Day Streak', description: 'Workout 7 days in a row' },
+                { id: 'month-streak', name: '30-Day Streak', description: 'Workout 30 days in a row' }
+            ];
+            
+            achievementsGrid.innerHTML = '';
+            
+            allAchievements.forEach(achievement => {
+                const achievementElement = document.createElement('div');
+                const isUnlocked = userAchievements.includes(achievement.id);
+                
+                achievementElement.className = isUnlocked ? 'achievement' : 'achievement locked';
+                achievementElement.innerHTML = `
+                    <div style="font-size: 1.1em; margin-bottom: 5px;">${isUnlocked ? '🏆' : '🔒'} ${achievement.name}</div>
+                    <div style="font-size: 0.8em; opacity: 0.8;">${achievement.description}</div>
+                `;
+                
+                achievementsGrid.appendChild(achievementElement);
+            });
+        }
+
+        // Update recent workouts list
+        function updateRecentWorkouts(workouts) {
+            const recentWorkoutsList = document.getElementById('recent-workouts-list');
+            
+            if (workouts.length === 0) {
+                recentWorkoutsList.innerHTML = '<div style="text-align: center; color: #a0a0a0; padding: 20px;">No workouts yet. <a href="/" style="color: #dc2626;">Start your first workout!</a></div>';
+                return;
+            }
+            
+            recentWorkoutsList.innerHTML = '';
+            
+            workouts.forEach(workout => {
+                const workoutElement = document.createElement('div');
+                workoutElement.className = 'workout-item';
+                
+                const date = new Date(workout.endTime || workout.startTime);
+                const timeAgo = getTimeAgo(date);
+                
+                workoutElement.innerHTML = `
+                    <div class="workout-info">
+                        <h4>${workout.duration} minute workout</h4>
+                        <p>${date.toLocaleDateString()} • ${timeAgo}</p>
+                        <p>Weight: ${workout.startingWeight}-${workout.maxWeight} lbs</p>
+                    </div>
+                    <div class="workout-stats">
+                        <div>${workout.actualTime || 0} min</div>
+                        <div style="font-size: 0.8em; color: #10b981;">✓ Complete</div>
+                    </div>
+                `;
+                
+                recentWorkoutsList.appendChild(workoutElement);
+            });
+        }
+
+        // Helper function to calculate time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            
+            if (days > 0) {
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            } else if (hours > 0) {
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else {
+                return 'Recently';
+            }
+        }
+
+        // Export data function
+        async function exportData() {
+            const userId = getUserId();
+            
+            try {
+                const response = await fetch(`/export/${userId}?format=json`);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `workout-data-${userId}-${Date.now()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    throw new Error('Export failed');
+                }
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Failed to export data. Please try again.');
+            }
+        }
+
+        // Initialize dashboard
+        async function init() {
+            // Check if user has set a username
+            const username = getUsername();
+            if (!username) {
+                document.getElementById('username-modal').style.display = 'flex';
+                document.getElementById('overview-loading').textContent = 'Please enter your username to continue...';
+                setupUsernameInput();
+                return;
+            }
+            
+            // Show user info
+            document.getElementById('current-username').textContent = username;
+            document.getElementById('user-info').style.display = 'flex';
+            
+            await Promise.all([
+                loadDashboardData(),
+                updateGymStatus()
+            ]);
+            
+            // Update gym status every minute
+            setInterval(updateGymStatus, 60000);
+        }
+
+        // Start the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
