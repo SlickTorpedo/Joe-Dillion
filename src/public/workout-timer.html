@@ -651,6 +651,7 @@
                 <button class="nav-tab active" onclick="showTab('workout')">Workout</button>
                 <button class="nav-tab" onclick="showTab('stats')">Stats</button>
                 <button class="nav-tab" onclick="showTab('history')">History</button>
+                <a href="/dashboard" class="nav-tab">Dashboard</a>
             </div>
 
             <div id="workout-tab" class="tab-content active">
@@ -687,7 +688,8 @@
 
                     <div class="weight-input">
                         <label for="starting-weight">Starting Weight (lbs):</label>
-                        <input type="number" id="starting-weight" value="1" min="1" max="100">
+                        <input type="number" id="starting-weight" value="1" min="1" max="10" step="1">
+                        <p style="color: #a0a0a0; font-size: 0.9em; margin-top: 5px;">Max weight: 10 lbs</p>
                     </div>
 
                     <button class="start-btn" onclick="startWorkout()">Start Workout</button>
@@ -791,6 +793,13 @@
             intervalId: null,
             lastBeepTime: 0,
             workoutId: null
+        };
+
+        const workoutColors = {
+            Warmup: '#10b981', // Green
+            Flys: '#dc2626', // Red
+            'Side Raises': '#2563eb', // Blue
+            Overhead: '#f59e0b', // Yellow
         };
 
         // Motivational quotes
@@ -1201,13 +1210,13 @@
             }
         }
 
-        // Update timer display
+        // Update timer display with workout color
         function updateTimerDisplay() {
             const minutes = Math.floor(workoutData.timeRemaining / 60);
             const seconds = workoutData.timeRemaining % 60;
             const timerElement = document.getElementById('timer-display');
             timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
+
             // Add warning class for last 10 seconds
             if (workoutData.timeRemaining <= 10 && workoutData.timeRemaining > 0) {
                 timerElement.classList.add('warning');
@@ -1215,9 +1224,16 @@
                 timerElement.classList.remove('warning');
             }
 
-            // Update exercise name
+            // Update exercise name and color
             const exerciseIndex = workoutData.currentExercise % workoutData.exercises.length;
-            document.getElementById('current-exercise').textContent = workoutData.exercises[exerciseIndex];
+            const currentExerciseName = workoutData.exercises[exerciseIndex];
+            const exerciseColor = workoutColors[currentExerciseName] || '#ffffff'; // Default to white
+
+            const currentExerciseElement = document.getElementById('current-exercise');
+            currentExerciseElement.textContent = currentExerciseName;
+            currentExerciseElement.style.color = exerciseColor;
+
+            timerElement.style.color = exerciseColor;
 
             // Update progress bar
             const progress = (workoutData.exerciseTime - workoutData.timeRemaining) / workoutData.exerciseTime * 100;
@@ -1225,21 +1241,21 @@
 
             // Update info cards
             document.getElementById('current-weight').textContent = workoutData.currentWeight + ' lbs';
-            
+
             const totalMinutes = Math.floor(workoutData.totalElapsed / 60);
             const totalSeconds = workoutData.totalElapsed % 60;
-            document.getElementById('total-time').textContent = 
+            document.getElementById('total-time').textContent =
                 `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
 
             const totalExercises = Math.floor(workoutData.duration / 2);
-            document.getElementById('exercise-count').textContent = 
+            document.getElementById('exercise-count').textContent =
                 `${workoutData.currentExercise + 1} / ${totalExercises}`;
 
             // Update remaining workout time
             const remainingWorkoutTime = workoutData.totalWorkoutTime - workoutData.totalElapsed;
             const remainingMinutes = Math.floor(remainingWorkoutTime / 60);
             const remainingSeconds = remainingWorkoutTime % 60;
-            document.getElementById('remaining-time').textContent = 
+            document.getElementById('remaining-time').textContent =
                 `${remainingMinutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         }
 
