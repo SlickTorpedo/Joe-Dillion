@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weight Training Timer</title>
+    <title>Progressive Weight Training Timer</title>
     <style>
         * {
             margin: 0;
@@ -46,8 +46,43 @@
             letter-spacing: 2px;
         }
 
+        .progressive-recommendation {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+        }
+
+        .progressive-recommendation h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .recommended-weight {
+            font-size: 3.5em;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .week-info {
+            font-size: 1.2em;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .reps-info {
+            font-size: 1em;
+            color: #ffffff;
+            opacity: 0.9;
+        }
+
         .motivational-section {
-            background: linear-gradient(135deg, #dc2626, #991b1b);
+            background: linear-gradient(135deg, #374151, #4b5563);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 25px;
@@ -94,6 +129,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            text-decoration: none;
         }
 
         .nav-tab.active {
@@ -103,11 +139,32 @@
         }
 
         .tab-content {
-            display: none;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            min-height: 400px; /* Provide minimum height to reduce layout shifts */
         }
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Add a consistent container height to minimize jumping */
+        #workout-tab, #stats-tab, #history-tab {
+            position: relative;
+            min-height: 600px; /* Adjust based on your content */
         }
 
         .workout-setup {
@@ -341,6 +398,97 @@
             color: white;
         }
 
+        .skip-btn {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .skip-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Skip Confirmation Modal */
+        .skip-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .skip-modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .skip-modal-content h2 {
+            color: #f59e0b;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .skip-modal-quote {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-style: italic;
+            font-size: 1.1em;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .skip-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .skip-confirm-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .skip-cancel-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .skip-confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .skip-cancel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -395,7 +543,7 @@
         }
 
         .motivational-quote {
-            background: linear-gradient(135dc, #dc2626, #b91c1c);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -589,6 +737,8 @@
             color: #dc2626;
             border-color: #dc2626;
         }
+
+                @media (max-width: 768px) {
             .container {
                 padding: 10px;
             }
@@ -604,27 +754,57 @@
             .current-exercise {
                 font-size: 2em;
             }
-
+        
             .duration-controls {
                 flex-direction: column;
                 gap: 10px;
             }
-
+        
             .quick-duration-btns {
                 gap: 5px;
             }
-
+        
             .quick-btn {
                 padding: 6px 12px;
                 font-size: 0.8em;
             }
+        
+            /* Fix navigation tabs for mobile */
+            .nav-tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+        
+            .nav-tab {
+                width: 100%;
+                text-align: center;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
+        <!-- Skip Confirmation Modal -->
+        <div id="skip-modal" class="skip-modal" style="display: none;">
+            <div class="skip-modal-content">
+                <h2>⚠️ Skip Exercise?</h2>
+                <div class="skip-modal-quote" id="skip-quote">
+                    "Champions are made when nobody's watching. Every rep matters."
+                </div>
+                <p style="color: #a0a0a0; margin: 15px 0;">
+                    Are you sure you want to skip this exercise? Remember, consistency builds strength.
+                </p>
+                <div class="skip-modal-buttons">
+                    <button class="skip-cancel-btn" onclick="cancelSkip()">Keep Going 💪</button>
+                    <button class="skip-confirm-btn" onclick="confirmSkip()">Skip Exercise</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Username Modal -->
         <div id="username-modal" class="username-modal" style="display: none;">
             <div class="username-modal-content">
-                <h2>Welcome to Weight Training Timer</h2>
+                <h2>Welcome to Progressive Weight Training Timer</h2>
                 <p>Enter your username to save your progress permanently</p>
                 <div class="username-input-group">
                     <input type="text" id="username-input" placeholder="Enter your username" maxlength="20">
@@ -637,20 +817,28 @@
         <div class="container">
         <div class="card">
             <div class="header">
-                <h1>WEIGHT TRAINING TIMER</h1>
+                <h1>PROGRESSIVE WEIGHT TRAINING TIMER</h1>
                 <div id="user-info" class="user-info" style="display: none;">
                     <span>Welcome back, <span class="username" id="current-username"></span>!</span>
                     <button class="change-user-btn" onclick="changeUser()">Change User</button>
                 </div>
             </div>
 
+            <!-- Progressive Training Recommendation -->
+            <div id="progressive-recommendation" class="progressive-recommendation">
+                <h2>Today's Recommended Training</h2>
+                <div class="recommended-weight" id="recommended-weight">1 lb</div>
+                <div class="week-info" id="week-info">Week 1 • Starting Phase</div>
+                <div class="reps-info" id="reps-info">25 repetitions per set</div>
+            </div>
+
             <div id="progress-motivator"></div>
             <div id="gym-status"></div>
 
             <div class="nav-tabs">
-                <button class="nav-tab active" onclick="showTab('workout')">Workout</button>
-                <button class="nav-tab" onclick="showTab('stats')">Stats</button>
-                <button class="nav-tab" onclick="showTab('history')">History</button>
+                <button class="nav-tab active" onclick="showTab('workout', event)">Workout</button>
+                <button class="nav-tab" onclick="showTab('stats', event)">Stats</button>
+                <button class="nav-tab" onclick="showTab('history', event)">History</button>
                 <a href="/dashboard" class="nav-tab">Dashboard</a>
             </div>
 
@@ -687,9 +875,9 @@
                     </div>
 
                     <div class="weight-input">
-                        <label for="starting-weight">Starting Weight (lbs):</label>
-                        <input type="number" id="starting-weight" value="1" min="1" max="10" step="1">
-                        <p style="color: #a0a0a0; font-size: 0.9em; margin-top: 5px;">Max weight: 10 lbs</p>
+                        <label for="starting-weight">Override Weight (optional):</label>
+                        <input type="number" id="starting-weight" value="" min="1" max="10" step="1" placeholder="Use recommended">
+                        <p style="color: #a0a0a0; font-size: 0.9em; margin-top: 5px;">Leave empty to use recommended weight above</p>
                     </div>
 
                     <button class="start-btn" onclick="startWorkout()">Start Workout</button>
@@ -725,6 +913,7 @@
 
                     <div class="controls">
                         <button class="control-btn pause-btn" onclick="togglePause()" id="pause-btn">Pause</button>
+                        <button class="control-btn skip-btn" onclick="showSkipModal()">Skip</button>
                         <button class="control-btn stop-btn" onclick="stopWorkout()">Stop</button>
                     </div>
                 </div>
@@ -777,6 +966,217 @@
     </div>
 
     <script>
+        // Progressive training system
+        function getProgressionData() {
+            return [
+                // 1-5 pounds progression (6 weeks each)
+                { weightRange: "1-5 lbs", weeks: [
+                    { week: 1, weight: 1, reps: 25, description: "Starting light - focus on form" },
+                    { week: 2, weight: 1, reps: 30, description: "Building endurance" },
+                    { week: 3, weight: 1, reps: 35, description: "Increasing volume" },
+                    { week: 4, weight: 1, reps: 40, description: "Higher repetitions" },
+                    { week: 5, weight: 1, reps: 45, description: "Peak volume" },
+                    { week: 6, weight: 1, reps: 50, description: "Maximum reps before progression" }
+                ]},
+                { weightRange: "1-5 lbs", weeks: [
+                    { week: 7, weight: 2, reps: 25, description: "Weight increase - back to base reps" },
+                    { week: 8, weight: 2, reps: 30, description: "Building with new weight" },
+                    { week: 9, weight: 2, reps: 35, description: "Adapting to 2 lbs" },
+                    { week: 10, weight: 2, reps: 40, description: "Strength building" },
+                    { week: 11, weight: 2, reps: 45, description: "High volume training" },
+                    { week: 12, weight: 2, reps: 50, description: "Ready for next progression" }
+                ]},
+                { weightRange: "1-5 lbs", weeks: [
+                    { week: 13, weight: 3, reps: 25, description: "3 lb progression" },
+                    { week: 14, weight: 3, reps: 30, description: "Building endurance" },
+                    { week: 15, weight: 3, reps: 35, description: "Strength gains" },
+                    { week: 16, weight: 3, reps: 40, description: "Consistent progress" },
+                    { week: 17, weight: 3, reps: 45, description: "Peak training" },
+                    { week: 18, weight: 3, reps: 50, description: "Maximum volume" }
+                ]},
+                { weightRange: "1-5 lbs", weeks: [
+                    { week: 19, weight: 4, reps: 25, description: "4 lb challenge" },
+                    { week: 20, weight: 4, reps: 30, description: "Adaptation phase" },
+                    { week: 21, weight: 4, reps: 35, description: "Building power" },
+                    { week: 22, weight: 4, reps: 40, description: "Strength development" },
+                    { week: 23, weight: 4, reps: 45, description: "High intensity" },
+                    { week: 24, weight: 4, reps: 50, description: "Peak performance" }
+                ]},
+                { weightRange: "1-5 lbs", weeks: [
+                    { week: 25, weight: 5, reps: 25, description: "5 lb milestone" },
+                    { week: 26, weight: 5, reps: 30, description: "New strength level" },
+                    { week: 27, weight: 5, reps: 35, description: "Advanced training" },
+                    { week: 28, weight: 5, reps: 40, description: "Power building" },
+                    { week: 29, weight: 5, reps: 45, description: "Elite endurance" },
+                    { week: 30, weight: 5, reps: 50, description: "Ready for 6-10 lb phase" }
+                ]},
+                // 6-10 pounds progression (12 weeks each)
+                { weightRange: "6-10 lbs", weeks: [
+                    { week: 31, weight: 6, reps: 25, description: "6-10 lb phase begins" },
+                    { week: 32, weight: 6, reps: 25, description: "Adapting to heavier weight" },
+                    { week: 33, weight: 6, reps: 30, description: "Building with 6 lbs" },
+                    { week: 34, weight: 6, reps: 30, description: "Strength consolidation" },
+                    { week: 35, weight: 6, reps: 35, description: "Progressive overload" },
+                    { week: 36, weight: 6, reps: 35, description: "Mastering 6 lbs" },
+                    { week: 37, weight: 6, reps: 40, description: "Higher volume" },
+                    { week: 38, weight: 6, reps: 40, description: "Peak 6 lb training" },
+                    { week: 39, weight: 6, reps: 45, description: "Maximum endurance" },
+                    { week: 40, weight: 6, reps: 45, description: "Elite level" },
+                    { week: 41, weight: 6, reps: 50, description: "Peak volume" },
+                    { week: 42, weight: 6, reps: 50, description: "Ready for 7 lbs" }
+                ]},
+                { weightRange: "6-10 lbs", weeks: [
+                    { week: 43, weight: 7, reps: 25, description: "7 lb progression" },
+                    { week: 44, weight: 7, reps: 25, description: "New weight adaptation" },
+                    { week: 45, weight: 7, reps: 30, description: "Building strength" },
+                    { week: 46, weight: 7, reps: 30, description: "Consistent progress" },
+                    { week: 47, weight: 7, reps: 35, description: "Power development" },
+                    { week: 48, weight: 7, reps: 35, description: "Strength gains" },
+                    { week: 49, weight: 7, reps: 40, description: "Advanced training" },
+                    { week: 50, weight: 7, reps: 40, description: "Peak 7 lb phase" },
+                    { week: 51, weight: 7, reps: 45, description: "High intensity" },
+                    { week: 52, weight: 7, reps: 45, description: "Year milestone" },
+                    { week: 53, weight: 7, reps: 50, description: "Maximum volume" },
+                    { week: 54, weight: 7, reps: 50, description: "Ready for 8 lbs" }
+                ]},
+                { weightRange: "6-10 lbs", weeks: [
+                    { week: 55, weight: 8, reps: 25, description: "8 lb challenge" },
+                    { week: 56, weight: 8, reps: 25, description: "Adaptation period" },
+                    { week: 57, weight: 8, reps: 30, description: "Building endurance" },
+                    { week: 58, weight: 8, reps: 30, description: "Strength building" },
+                    { week: 59, weight: 8, reps: 35, description: "Progressive training" },
+                    { week: 60, weight: 8, reps: 35, description: "Power gains" },
+                    { week: 61, weight: 8, reps: 40, description: "Advanced level" },
+                    { week: 62, weight: 8, reps: 40, description: "Peak 8 lb training" },
+                    { week: 63, weight: 8, reps: 45, description: "Elite endurance" },
+                    { week: 64, weight: 8, reps: 45, description: "Maximum effort" },
+                    { week: 65, weight: 8, reps: 50, description: "Peak volume" },
+                    { week: 66, weight: 8, reps: 50, description: "Ready for 9 lbs" }
+                ]},
+                { weightRange: "6-10 lbs", weeks: [
+                    { week: 67, weight: 9, reps: 25, description: "9 lb progression" },
+                    { week: 68, weight: 9, reps: 25, description: "Heavy weight adaptation" },
+                    { week: 69, weight: 9, reps: 30, description: "Building with 9 lbs" },
+                    { week: 70, weight: 9, reps: 30, description: "Strength consolidation" },
+                    { week: 71, weight: 9, reps: 35, description: "Power development" },
+                    { week: 72, weight: 9, reps: 35, description: "Advanced training" },
+                    { week: 73, weight: 9, reps: 40, description: "High intensity" },
+                    { week: 74, weight: 9, reps: 40, description: "Peak 9 lb phase" },
+                    { week: 75, weight: 9, reps: 45, description: "Elite performance" },
+                    { week: 76, weight: 9, reps: 45, description: "Maximum endurance" },
+                    { week: 77, weight: 9, reps: 50, description: "Peak volume" },
+                    { week: 78, weight: 9, reps: 50, description: "Ready for 10 lbs" }
+                ]},
+                { weightRange: "6-10 lbs", weeks: [
+                    { week: 79, weight: 10, reps: 25, description: "10 lb milestone!" },
+                    { week: 80, weight: 10, reps: 25, description: "Maximum weight adaptation" },
+                    { week: 81, weight: 10, reps: 30, description: "Building with 10 lbs" },
+                    { week: 82, weight: 10, reps: 30, description: "Elite strength" },
+                    { week: 83, weight: 10, reps: 35, description: "Peak power" },
+                    { week: 84, weight: 10, reps: 35, description: "Advanced athlete" },
+                    { week: 85, weight: 10, reps: 40, description: "Maximum intensity" },
+                    { week: 86, weight: 10, reps: 40, description: "Elite level" },
+                    { week: 87, weight: 10, reps: 45, description: "Peak performance" },
+                    { week: 88, weight: 10, reps: 45, description: "Champion level" },
+                    { week: 89, weight: 10, reps: 50, description: "Maximum volume" },
+                    { week: 90, weight: 10, reps: 50, description: "Program complete!" }
+                ]}
+            ];
+        }
+
+        // Motivational quotes
+        const motivationalQuotes = [
+            "Consistency builds champions",
+            "Every rep counts",
+            "Progress over perfection", 
+            "Show up and do the work",
+            "Your future self will thank you",
+            "Strength comes from within",
+            "Push through the resistance",
+            "Make it happen",
+            "Focus on the process",
+            "Results follow effort"
+        ];
+
+        // Calculate current week based on workout count
+        function calculateCurrentWeek(totalWorkouts) {
+            const averageWorkoutsPerWeek = 3.5;
+            return Math.floor(totalWorkouts / averageWorkoutsPerWeek) + 1;
+        }
+
+        // Get current weight and reps recommendation
+        function getCurrentRecommendation(totalWorkouts) {
+            const currentWeek = calculateCurrentWeek(totalWorkouts);
+            
+            // 1-5 lb phase: 6 weeks per weight
+            if (currentWeek <= 6) {
+                return { weight: 1, reps: 25 + (currentWeek - 1) * 5, week: currentWeek, phase: "1-5 lbs" };
+            } else if (currentWeek <= 12) {
+                return { weight: 2, reps: 25 + (currentWeek - 7) * 5, week: currentWeek, phase: "1-5 lbs" };
+            } else if (currentWeek <= 18) {
+                return { weight: 3, reps: 25 + (currentWeek - 13) * 5, week: currentWeek, phase: "1-5 lbs" };
+            } else if (currentWeek <= 24) {
+                return { weight: 4, reps: 25 + (currentWeek - 19) * 5, week: currentWeek, phase: "1-5 lbs" };
+            } else if (currentWeek <= 30) {
+                return { weight: 5, reps: 25 + (currentWeek - 25) * 5, week: currentWeek, phase: "1-5 lbs" };
+            }
+            // 6-10 lb phase: 12 weeks per weight
+            else if (currentWeek <= 42) {
+                const weekInPhase = ((currentWeek - 31) % 12) + 1;
+                let reps;
+                if (weekInPhase <= 2) reps = 25;
+                else if (weekInPhase <= 4) reps = 30;
+                else if (weekInPhase <= 6) reps = 35;
+                else if (weekInPhase <= 8) reps = 40;
+                else if (weekInPhase <= 10) reps = 45;
+                else reps = 50;
+                return { weight: 6, reps: reps, week: currentWeek, phase: "6-10 lbs" };
+            } else if (currentWeek <= 54) {
+                const weekInPhase = ((currentWeek - 43) % 12) + 1;
+                let reps;
+                if (weekInPhase <= 2) reps = 25;
+                else if (weekInPhase <= 4) reps = 30;
+                else if (weekInPhase <= 6) reps = 35;
+                else if (weekInPhase <= 8) reps = 40;
+                else if (weekInPhase <= 10) reps = 45;
+                else reps = 50;
+                return { weight: 7, reps: reps, week: currentWeek, phase: "6-10 lbs" };
+            } else if (currentWeek <= 66) {
+                const weekInPhase = ((currentWeek - 55) % 12) + 1;
+                let reps;
+                if (weekInPhase <= 2) reps = 25;
+                else if (weekInPhase <= 4) reps = 30;
+                else if (weekInPhase <= 6) reps = 35;
+                else if (weekInPhase <= 8) reps = 40;
+                else if (weekInPhase <= 10) reps = 45;
+                else reps = 50;
+                return { weight: 8, reps: reps, week: currentWeek, phase: "6-10 lbs" };
+            } else if (currentWeek <= 78) {
+                const weekInPhase = ((currentWeek - 67) % 12) + 1;
+                let reps;
+                if (weekInPhase <= 2) reps = 25;
+                else if (weekInPhase <= 4) reps = 30;
+                else if (weekInPhase <= 6) reps = 35;
+                else if (weekInPhase <= 8) reps = 40;
+                else if (weekInPhase <= 10) reps = 45;
+                else reps = 50;
+                return { weight: 9, reps: reps, week: currentWeek, phase: "6-10 lbs" };
+            } else if (currentWeek <= 90) {
+                const weekInPhase = ((currentWeek - 79) % 12) + 1;
+                let reps;
+                if (weekInPhase <= 2) reps = 25;
+                else if (weekInPhase <= 4) reps = 30;
+                else if (weekInPhase <= 6) reps = 35;
+                else if (weekInPhase <= 8) reps = 40;
+                else if (weekInPhase <= 10) reps = 45;
+                else reps = 50;
+                return { weight: 10, reps: reps, week: currentWeek, phase: "6-10 lbs" };
+            }
+            
+            // Beyond program completion
+            return { weight: 10, reps: 50, week: currentWeek, phase: "Advanced", description: "Program complete - maintain or create new goals" };
+        }
+
         // Workout data and state
         let workoutData = {
             duration: 30, // minutes
@@ -802,18 +1202,21 @@
             Overhead: '#f59e0b', // Yellow
         };
 
-        // Motivational quotes
-        const motivationalQuotes = [
-            "Consistency builds champions",
-            "Every rep counts",
-            "Progress over perfection",
-            "Show up and do the work",
-            "Your future self will thank you",
-            "Strength comes from within",
-            "Push through the resistance",
-            "Make it happen",
-            "Focus on the process",
-            "Results follow effort"
+        // Global variable to store current recommended reps
+        let currentRecommendedReps = 25;
+
+        // Motivational quotes for skip confirmation
+        const skipQuotes = [
+            "Champions are made when nobody's watching. Every rep matters.",
+            "The pain you feel today is the strength you feel tomorrow.",
+            "Don't stop when you're tired. Stop when you're done.",
+            "Your only competition is who you were yesterday.",
+            "Excuses don't burn calories. Keep pushing.",
+            "The hardest part is showing up. You're already here.",
+            "Progress happens outside your comfort zone.",
+            "Every champion was once a beginner who refused to give up.",
+            "You're stronger than your excuses.",
+            "The body achieves what the mind believes."
         ];
 
         // Audio context for beeps
@@ -892,8 +1295,13 @@
                 
                 // If user has existing data, welcome them back
                 if (existingStats && existingStats.success && existingStats.totalWorkouts > 0) {
+                    const recommendation = getCurrentRecommendation(existingStats.totalWorkouts);
                     setTimeout(() => {
-                        alert(`Welcome back, ${username}! You have ${existingStats.totalWorkouts} workouts completed.`);
+                        alert(`Welcome back, ${username}! You have ${existingStats.totalWorkouts} workouts completed. Today's recommendation: ${recommendation.weight} lbs, ${recommendation.reps} reps.`);
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        alert(`Welcome to Progressive Weight Training, ${username}! Start with 1 pound and 25 reps per set.`);
                     }, 500);
                 }
                 
@@ -912,6 +1320,7 @@
                 document.getElementById('user-info').style.display = 'none';
                 document.getElementById('username-input').value = '';
                 document.getElementById('username-modal').style.display = 'flex';
+                setupUsernameInput();
             }
         }
 
@@ -952,6 +1361,39 @@
             } catch (error) {
                 console.error('API call failed:', error);
                 return null;
+            }
+        }
+
+        // Update progressive recommendation display
+        async function updateProgressiveRecommendation() {
+            const userId = getUserId();
+            
+            try {
+                const stats = await apiCall(`/workouts/stats/${userId}`);
+                
+                if (stats && stats.success) {
+                    const recommendation = getCurrentRecommendation(stats.totalWorkouts);
+                    
+                    document.getElementById('recommended-weight').textContent = `${recommendation.weight} lb${recommendation.weight > 1 ? 's' : ''}`;
+                    document.getElementById('week-info').textContent = `Week ${recommendation.week} • ${recommendation.phase}`;
+                    document.getElementById('reps-info').textContent = `${recommendation.reps} repetitions per set`;
+                    
+                    // Store recommended reps for use in timer display
+                    currentRecommendedReps = recommendation.reps;
+                    
+                    // Update the weight input placeholder
+                    const weightInput = document.getElementById('starting-weight');
+                    weightInput.placeholder = `${recommendation.weight} lbs (recommended)`;
+                    
+                } else {
+                    // Default for new users
+                    document.getElementById('recommended-weight').textContent = '1 lb';
+                    document.getElementById('week-info').textContent = 'Week 1 • Starting Phase';
+                    document.getElementById('reps-info').textContent = '25 repetitions per set';
+                    currentRecommendedReps = 25;
+                }
+            } catch (error) {
+                console.error('Failed to update progressive recommendation:', error);
             }
         }
 
@@ -1075,11 +1517,25 @@
             }
         }
 
-        // Tab navigation
-        function showTab(tabName) {
-            // Hide all tabs
+                // Find the showTab function in your code and replace it with this improved version
+        function showTab(tabName, event) {
+            const scrollPosition = window.scrollY; // Store current scroll position
+            
+            // Hide all tabs with fade out
             document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
+                if (tab.classList.contains('active')) {
+                    tab.style.opacity = '0';
+                    tab.style.transform = 'translateY(-10px)';
+                    
+                    setTimeout(() => {
+                        tab.classList.remove('active');
+                        tab.style.display = 'none';
+                        
+                        // Reset styles for next appearance
+                        tab.style.opacity = '';
+                        tab.style.transform = '';
+                    }, 200);
+                }
             });
             
             // Remove active class from all nav tabs
@@ -1087,16 +1543,45 @@
                 tab.classList.remove('active');
             });
             
-            // Show selected tab
-            document.getElementById(tabName + '-tab').classList.add('active');
-            event.target.classList.add('active');
-            
-            // Update stats when showing stats tab
-            if (tabName === 'stats') {
-                updateStats();
-            } else if (tabName === 'history') {
-                updateHistory();
-            }
+            // Show selected tab with fade in
+            setTimeout(() => {
+                const selectedTab = document.getElementById(tabName + '-tab');
+                selectedTab.style.display = 'block';
+                
+                // Add active class to clicked nav tab
+                if (event && event.target) {
+                    event.target.classList.add('active');
+                } else {
+                    // If no event, find the nav tab with the corresponding tabName
+                    document.querySelectorAll('.nav-tab').forEach(tab => {
+                        if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+                            tab.classList.add('active');
+                        }
+                    });
+                }
+                
+                // Update stats when showing stats tab
+                if (tabName === 'stats') {
+                    // Reset the stats container first
+                    document.getElementById('stats-content').style.display = 'none';
+                    document.getElementById('stats-loading').style.display = 'block';
+                    updateStats();
+                } else if (tabName === 'history') {
+                    // Reset the history container first
+                    document.getElementById('history-list').style.display = 'none';
+                    document.getElementById('history-loading').style.display = 'block';
+                    updateHistory();
+                }
+                
+                // Force a reflow to ensure transitions work
+                selectedTab.offsetHeight;
+                
+                // Add the active class after a short delay
+                setTimeout(() => {
+                    selectedTab.classList.add('active');
+                    window.scrollTo(0, scrollPosition); // Restore scroll position
+                }, 50);
+            }, 200);
         }
 
         // Start workout
@@ -1105,7 +1590,18 @@
             
             const userId = getUserId();
             const duration = workoutData.duration;
-            const startingWeight = parseInt(document.getElementById('starting-weight').value);
+            
+            // Get weight - use override or recommended
+            let startingWeight;
+            const overrideWeight = document.getElementById('starting-weight').value;
+            if (overrideWeight) {
+                startingWeight = parseInt(overrideWeight);
+            } else {
+                // Use recommended weight
+                const stats = await apiCall(`/workouts/stats/${userId}`);
+                const recommendation = getCurrentRecommendation(stats?.totalWorkouts || 0);
+                startingWeight = recommendation.weight;
+            }
             
             try {
                 // Start workout on backend
@@ -1172,21 +1668,19 @@
         }
 
         // Move to next exercise
-        function nextExercise() {
-            // Play completion sound
-            playBeep(1200, 300);
+        function nextExercise(isSkip = false) {
+            // Play completion sound (only when naturally completing, not when skipping)
+            if (!isSkip) {
+                playBeep(1200, 300);
+            }
             
             workoutData.currentExercise++;
             workoutData.timeRemaining = workoutData.exerciseTime;
             workoutData.lastBeepTime = 0;
 
-            // Update weight progression
-            if (workoutData.currentExercise > 1) { // After warmup
-                const progressionStep = Math.floor((workoutData.currentExercise - 1) / 2);
-                const weightProgression = [1, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-                workoutData.currentWeight = weightProgression[Math.min(progressionStep, weightProgression.length - 1)];
-            }
-
+            // Progressive weight system - keep same weight throughout workout
+            // Weight stays constant during a single workout session
+            
             updateTimerDisplay();
             showNextExerciseAnnouncement();
         }
@@ -1224,13 +1718,20 @@
                 timerElement.classList.remove('warning');
             }
 
-            // Update exercise name and color
+            // Update exercise name and color with rep count
             const exerciseIndex = workoutData.currentExercise % workoutData.exercises.length;
             const currentExerciseName = workoutData.exercises[exerciseIndex];
             const exerciseColor = workoutColors[currentExerciseName] || '#ffffff'; // Default to white
 
             const currentExerciseElement = document.getElementById('current-exercise');
-            currentExerciseElement.textContent = currentExerciseName;
+            
+            // Add rep count to exercise name (except for warmup)
+            if (currentExerciseName === 'Warmup') {
+                currentExerciseElement.textContent = currentExerciseName;
+            } else {
+                currentExerciseElement.textContent = `${currentExerciseName} (${currentRecommendedReps})`;
+            }
+            
             currentExerciseElement.style.color = exerciseColor;
 
             timerElement.style.color = exerciseColor;
@@ -1259,6 +1760,137 @@
                 `${remainingMinutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         }
 
+        // Skip exercise functions
+        function showSkipModal() {
+            const skipModal = document.getElementById('skip-modal');
+            const skipQuote = document.getElementById('skip-quote');
+            
+            // Show random motivational quote
+            const randomQuote = skipQuotes[Math.floor(Math.random() * skipQuotes.length)];
+            skipQuote.textContent = randomQuote;
+            
+            skipModal.style.display = 'flex';
+        }
+
+        function confirmSkip() {
+            document.getElementById('skip-modal').style.display = 'none';
+            
+            // Array of disappointment sounds
+            const disappointmentSounds = [
+                // Original descending pattern
+                () => {
+                    playBeep(550, 200);
+                    setTimeout(() => playBeep(500, 200), 180);
+                    setTimeout(() => playBeep(450, 200), 340);
+                    setTimeout(() => playBeep(400, 200), 480);
+                    setTimeout(() => playBeep(350, 200), 600);
+                    setTimeout(() => playBeep(300, 250), 700);
+                    setTimeout(() => playBeep(250, 300), 800);
+                    setTimeout(() => playBeep(200, 400), 920);
+                },
+                // Sad Trombone
+                () => {
+                    playBeep(440, 300);
+                    setTimeout(() => playBeep(415, 300), 250);
+                    setTimeout(() => playBeep(392, 300), 500);
+                    setTimeout(() => playBeep(370, 500), 750);
+                },
+                // Buzzer of Shame
+                () => {
+                    playBeep(150, 100);
+                    setTimeout(() => playBeep(150, 100), 120);
+                    setTimeout(() => playBeep(150, 100), 240);
+                    setTimeout(() => playBeep(120, 400), 360);
+                },
+                // Broken Dreams
+                () => {
+                    playBeep(880, 150);
+                    setTimeout(() => playBeep(440, 200), 100);
+                    setTimeout(() => playBeep(220, 300), 200);
+                    setTimeout(() => playBeep(110, 400), 400);
+                    setTimeout(() => playBeep(80, 600), 700);
+                },
+                // Alarm of Disappointment
+                () => {
+                    playBeep(200, 150);
+                    setTimeout(() => playBeep(180, 150), 150);
+                    setTimeout(() => playBeep(200, 150), 300);
+                    setTimeout(() => playBeep(180, 150), 450);
+                    setTimeout(() => playBeep(160, 400), 600);
+                }
+            ];
+            
+            // Play random disappointment sound
+            const randomSound = disappointmentSounds[Math.floor(Math.random() * disappointmentSounds.length)];
+            randomSound();
+            
+            // Account for skipped time (add the remaining time of the current exercise to total elapsed)
+            workoutData.totalElapsed += workoutData.timeRemaining;
+            
+            // Skip to next exercise
+            workoutData.currentExercise++;
+            workoutData.timeRemaining = workoutData.exerciseTime;
+            workoutData.lastBeepTime = 0;
+            
+            // Check if workout is complete after skipping
+            const totalExercises = Math.floor(workoutData.duration / 2);
+            if (workoutData.currentExercise >= totalExercises) {
+                completeWorkout();
+                return;
+            }
+            
+            // Update display and announce next exercise
+            updateTimerDisplay();
+            showNextExerciseAnnouncement();
+        }
+
+        function cancelSkip() {
+            document.getElementById('skip-modal').style.display = 'none';
+            
+            // Array of encouraging sounds
+            const encouragingSounds = [
+                // Original ascending pattern
+                () => {
+                    playBeep(1000, 300);
+                    setTimeout(() => playBeep(1200, 300), 200);
+                    setTimeout(() => playBeep(1400, 300), 400);
+                    setTimeout(() => playBeep(1600, 300), 600);
+                },
+                // Victory fanfare
+                () => {
+                    playBeep(523, 200); // C5
+                    setTimeout(() => playBeep(659, 200), 150); // E5
+                    setTimeout(() => playBeep(784, 200), 300); // G5
+                    setTimeout(() => playBeep(1047, 400), 450); // C6
+                },
+                // Power chord progression
+                () => {
+                    playBeep(880, 250); // A5
+                    setTimeout(() => playBeep(1108, 250), 200); // C#6
+                    setTimeout(() => playBeep(1319, 350), 400); // E6
+                },
+                // Champion bells
+                () => {
+                    playBeep(1760, 150); // A6
+                    setTimeout(() => playBeep(1760, 150), 180);
+                    setTimeout(() => playBeep(2093, 200), 360); // C7
+                    setTimeout(() => playBeep(1760, 300), 580);
+                },
+                // Motivational rise
+                () => {
+                    playBeep(440, 150);
+                    setTimeout(() => playBeep(554, 150), 120);
+                    setTimeout(() => playBeep(659, 150), 240);
+                    setTimeout(() => playBeep(880, 200), 360);
+                    setTimeout(() => playBeep(1108, 300), 480);
+                }
+            ];
+            
+            // Play random encouraging sound
+            const randomSound = encouragingSounds[Math.floor(Math.random() * encouragingSounds.length)];
+            randomSound();
+        }
+
         // Toggle pause
         function togglePause() {
             workoutData.isPaused = !workoutData.isPaused;
@@ -1277,6 +1909,7 @@
                 
                 showRandomQuote();
                 updateDailyMotivation();
+                updateProgressiveRecommendation();
             }
         }
 
@@ -1320,31 +1953,16 @@
                 console.error('Failed to save workout to backend:', error);
             }
 
-            // Fallback to local storage if backend fails
-            if (!backendSuccess) {
-                const data = JSON.parse(localStorage.getItem('workoutAppData') || '{}');
-                if (!data.workouts) data.workouts = [];
-                if (!data.achievements) data.achievements = [];
+            // Show completion message with next week's recommendation
+            try {
+                const stats = await apiCall(`/workouts/stats/${userId}`);
+                const newTotal = (stats?.totalWorkouts || 0) + 1;
+                const nextRecommendation = getCurrentRecommendation(newTotal);
                 
-                const workout = {
-                    date: new Date().toISOString(),
-                    duration: workoutData.duration,
-                    actualTime: Math.floor(workoutData.totalElapsed / 60),
-                    startingWeight: workoutData.startingWeight,
-                    maxWeight: workoutData.currentWeight,
-                    completed: true
-                };
-
-                data.workouts.unshift(workout);
-                data.totalWorkouts = (data.totalWorkouts || 0) + 1;
-                data.totalTimeMinutes = (data.totalTimeMinutes || 0) + workout.actualTime;
-                data.maxWeight = Math.max(data.maxWeight || 0, workout.maxWeight);
-
-                localStorage.setItem('workoutAppData', JSON.stringify(data));
+                alert(`🎉 Workout Complete! Great job!\n\nNext workout: ${nextRecommendation.weight} lbs, ${nextRecommendation.reps} reps`);
+            } catch (error) {
+                alert('🎉 Workout Complete! Great job!');
             }
-
-            // Show completion message
-            alert('🎉 Workout Complete! Great job!');
 
             // Return to setup screen
             document.getElementById('timer-screen').style.display = 'none';
@@ -1353,6 +1971,7 @@
             showRandomQuote();
             updateDailyMotivation();
             updateProgressMotivator();
+            updateProgressiveRecommendation();
         }
 
         // Update stats display
@@ -1386,16 +2005,17 @@
                 // Update achievements display
                 const achievementsContainer = document.getElementById('achievements');
                 const achievementLabels = {
-                    'first-workout': 'First Workout',
-                    'ten-workouts': '10 Workouts',
-                    'fifty-workouts': '50 Workouts',
-                    'hundred-workouts': '100 Workouts',
-                    'heavy-lifter': 'Heavy Lifter (25+ lbs)',
-                    'serious-lifter': 'Serious Lifter (50+ lbs)',
-                    'marathon': 'Marathon (5+ hours)',
-                    'dedication': 'Dedication (16+ hours)',
+                    'first-workout': 'First Step',
+                    'dedication': 'Dedicated (5+ workouts)',
+                    'ten-workouts': 'Consistent (10+ workouts)',
+                    'consistency': 'Committed (20+ workouts)',
+                    'two-pounds': '2 Pound Club',
+                    'five-pounds': '5 Pound Club', 
+                    'heavy-lifter': 'Heavy Lifter (6 lbs)',
+                    'serious-lifter': 'Serious Lifter (8 lbs)',
                     'week-streak': '7-Day Streak',
-                    'month-streak': '30-Day Streak'
+                    'month-streak': '30-Day Streak',
+                    'monthly-master': 'Monthly Master'
                 };
 
                 achievementsContainer.innerHTML = '';
@@ -1486,6 +2106,7 @@
             
             // Load initial data
             await Promise.all([
+                updateProgressiveRecommendation(),
                 updateDailyMotivation(),
                 updateProgressMotivator(),
                 updateGymStatus()

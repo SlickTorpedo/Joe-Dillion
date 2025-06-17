@@ -132,13 +132,13 @@ app.get("/gym-status", (req, res) => {
 });
 logger.info("[WORKOUT-APP] Loaded gym status endpoint");
 
-// User dashboard endpoint (optional - for viewing stats without the timer)
+// User dashboard endpoint
 app.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
 logger.info("[WORKOUT-APP] Loaded dashboard route");
 
-// Export workout data endpoint
+// Export workout data endpoint - Fixed to work with current API structure
 app.get("/export/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
@@ -146,48 +146,106 @@ app.get("/export/:userId", async (req, res) => {
         
         logger.info(`[WORKOUT-APP] Exporting data for user: ${userId} in format: ${format}`);
         
-        // Get all user data
-        const [statsData, achievementsData] = await Promise.all([
-            database.get(`user:${userId}:stats`),
-            database.get(`user:${userId}:achievements`)
-        ]);
+        // Get user stats
+        const statsData = await database.get(`user:${userId}:stats`);
+        const stats = statsData ? JSON.parse(statsData) : {
+            totalWorkouts: 0,
+            totalTimeMinutes: 0,
+            maxWeight: 0
+        };
         
-        const stats = statsData ? JSON.parse(statsData) : {};
+        // Get user achievements
+        const achievementsData = await database.get(`user:${userId}:achievements`);
         const achievements = achievementsData ? JSON.parse(achievementsData) : [];
         
-        // Get workout history
-        const workoutIds = await database.zrevrange(`user:${userId}:workouts`, 0, -1);
+        // Get workout history using the same pattern as the API
+        const workoutKeys = await database.keys(`workout:${userId}_*`);
         const workouts = [];
         
-        for (const workoutId of workoutIds) {
-            const workoutData = await database.get(`workout:${workoutId}`);
-            if (workoutData) {
-                workouts.push(JSON.parse(workoutData));
+        if (workoutKeys && workoutKeys.length > 0) {
+            for (const workoutKey of workoutKeys) {
+                const workoutData = await database.get(workoutKey);
+                if (workoutData) {
+                    const workout = JSON.parse(workoutData);
+                    if (workout.status === 'completed') {
+                        workouts.push(workout);
+                    }
+                }
             }
+            
+            // Sort by end time (newest first) - same as API
+            workouts.sort((a, b) => {
+                const dateA = new Date(a.endTime || a.startTime);
+                const dateB = new Date(b.endTime || b.startTime);
+                return dateB - dateA;
+            });
         }
+        
+        // Calculate current week and recommendations for progressive training
+        const averageWorkoutsPerWeek = 3.5;
+        const currentWeek = Math.floor(stats.totalWorkouts / averageWorkoutsPerWeek) + 1;
         
         const exportData = {
             userId,
             exportDate: new Date().toISOString(),
-            stats,
-            achievements,
-            workouts,
-            totalRecords: workouts.length
+            progressiveTraining: {
+                currentWeek: currentWeek,
+                totalWorkouts: stats.totalWorkouts,
+                phase: currentWeek <= 30 ? "1-5 lbs" : "6-10 lbs"
+            },
+            stats: {
+                ...stats,
+                averageWorkoutLength: stats.totalWorkouts > 0 ? Math.round(stats.totalTimeMinutes / stats.totalWorkouts) : 0,
+                workoutsThisWeek: 0 // Could be calculated from recent workouts if needed
+            },
+            achievements: achievements,
+            workouts: workouts,
+            totalRecords: workouts.length,
+            exportMetadata: {
+                version: "2.0",
+                type: "progressive-workout-data",
+                compatibility: "workout-timer-app"
+            }
         };
+        
+        // Calculate workouts this week if we have workout data
+        if (workouts.length > 0) {
+            const weekStart = getStartOfWeek();
+            const weekEnd = weekStart + (7 * 24 * 60 * 60 * 1000);
+            
+            const thisWeekWorkouts = workouts.filter(workout => {
+                const workoutTime = new Date(workout.endTime || workout.startTime).getTime();
+                return workoutTime >= weekStart && workoutTime <= weekEnd;
+            }).length;
+            
+            exportData.stats.workoutsThisWeek = thisWeekWorkouts;
+        }
         
         if (format === 'json') {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Content-Disposition', `attachment; filename="workout-data-${userId}-${Date.now()}.json"`);
+            res.setHeader('Content-Disposition', `attachment; filename="progressive-workout-data-${userId}-${Date.now()}.json"`);
             res.json(exportData);
         } else {
             res.status(400).json({ success: false, error: 'Unsupported format. Use format=json' });
         }
+        
+        logger.info(`[WORKOUT-APP] Successfully exported ${workouts.length} workouts for user ${userId}`);
         
     } catch (error) {
         logger.error(`[WORKOUT-APP] Error exporting data: ${error.message}`);
         res.status(500).json({ success: false, error: 'Failed to export data' });
     }
 });
+
+// Helper function for week calculation
+function getStartOfWeek() {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    return startOfWeek.getTime();
+}
+
 logger.info("[WORKOUT-APP] Loaded data export endpoint");
 
 // 404 handler
@@ -233,6 +291,7 @@ app.listen(PORT, () => {
     logger.info(`[WORKOUT-APP] 🌐 Access the app at: http://localhost:${PORT}`);
     logger.info(`[WORKOUT-APP] 📊 Health check: http://localhost:${PORT}/health`);
     logger.info(`[WORKOUT-APP] 🏃‍♂️ Gym status: http://localhost:${PORT}/gym-status`);
+    logger.info(`[WORKOUT-APP] 📋 Dashboard: http://localhost:${PORT}/dashboard`);
 });
 
 module.exports = app;

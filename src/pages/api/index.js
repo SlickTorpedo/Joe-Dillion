@@ -86,7 +86,7 @@ router.post("/workouts/start", workoutLimiter, async function (req, res) {
         
         logger.info(`[WORKOUT-API] Starting workout for user: ${userId}, duration: ${duration}min, weight: ${startingWeight}lbs`);
         
-        const workoutId = `workout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const workoutId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const workout = {
             id: workoutId,
             userId,
@@ -279,18 +279,21 @@ router.post("/workouts/achievements/check/:userId", workoutLimiter, async functi
         const achievementsData = await database.get(`user:${userId}:achievements`);
         const currentAchievements = achievementsData ? JSON.parse(achievementsData) : [];
         
+        // Get workout keys for additional checks
+        const workoutKeys = await database.keys(`workout:${userId}_*`);
+        
         const newAchievements = [];
         
         // Achievement checks
         const achievementChecks = [
-            { id: 'first-workout', condition: stats.totalWorkouts >= 1, name: 'First Workout' },
-            { id: 'ten-workouts', condition: stats.totalWorkouts >= 10, name: '10 Workouts' },
-            { id: 'fifty-workouts', condition: stats.totalWorkouts >= 50, name: '50 Workouts' },
-            { id: 'hundred-workouts', condition: stats.totalWorkouts >= 100, name: '100 Workouts' },
-            { id: 'heavy-lifter', condition: stats.maxWeight >= 25, name: 'Heavy Lifter' },
-            { id: 'serious-lifter', condition: stats.maxWeight >= 50, name: 'Serious Lifter' },
-            { id: 'marathon', condition: stats.totalTimeMinutes >= 300, name: 'Marathon' },
-            { id: 'dedication', condition: stats.totalTimeMinutes >= 1000, name: 'Dedication' }
+            { id: 'first-workout', condition: stats.totalWorkouts >= 1, name: 'First Step' },
+            { id: 'dedication', condition: stats.totalWorkouts >= 5, name: 'Dedicated' },
+            { id: 'ten-workouts', condition: stats.totalWorkouts >= 10, name: 'Consistent' },
+            { id: 'consistency', condition: stats.totalWorkouts >= 20, name: 'Committed' },
+            { id: 'two-pounds', condition: stats.maxWeight >= 2, name: '2 Pound Club' },
+            { id: 'five-pounds', condition: stats.maxWeight >= 5, name: '5 Pound Club' },
+            { id: 'heavy-lifter', condition: stats.maxWeight >= 6, name: 'Heavy Lifter' },
+            { id: 'serious-lifter', condition: stats.maxWeight >= 8, name: 'Serious Lifter' }
         ];
         
         for (const check of achievementChecks) {
@@ -310,6 +313,34 @@ router.post("/workouts/achievements/check/:userId", workoutLimiter, async functi
         if (streak >= 30 && !currentAchievements.includes('month-streak')) {
             newAchievements.push({ id: 'month-streak', name: '30-Day Streak' });
             currentAchievements.push('month-streak');
+        }
+        
+        // Check for monthly-master achievement (20 workouts in a single month)
+        if (!currentAchievements.includes('monthly-master')) {
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            
+            let monthlyWorkouts = 0;
+            
+            // Count workouts in the current month
+            for (const workoutKey of workoutKeys) {
+                const workoutData = await database.get(workoutKey);
+                if (workoutData) {
+                    const workout = JSON.parse(workoutData);
+                    if (workout.status === 'completed' && workout.endTime) {
+                        const workoutDate = new Date(workout.endTime);
+                        if (workoutDate >= firstDayOfMonth && workoutDate <= lastDayOfMonth) {
+                            monthlyWorkouts++;
+                        }
+                    }
+                }
+            }
+            
+            if (monthlyWorkouts >= 20) {
+                newAchievements.push({ id: 'monthly-master', name: 'Monthly Master' });
+                currentAchievements.push('monthly-master');
+            }
         }
         
         // Save updated achievements
