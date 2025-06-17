@@ -167,6 +167,14 @@
             min-height: 600px; /* Adjust based on your content */
         }
 
+        #stats-tab {
+            display: none;
+        }
+
+        #history-tab {
+            display: none;
+        }
+
         .workout-setup {
             text-align: center;
         }
@@ -1989,6 +1997,7 @@
                     apiCall(`/workouts/achievements/${userId}`)
                 ]);
                 
+                // Always show stats content, even if data is empty
                 if (stats && stats.success) {
                     document.getElementById('total-workouts').textContent = stats.totalWorkouts || 0;
                     
@@ -2017,9 +2026,9 @@
                     'month-streak': '30-Day Streak',
                     'monthly-master': 'Monthly Master'
                 };
-
+        
                 achievementsContainer.innerHTML = '';
-                if (achievements && achievements.success && achievements.achievements.length > 0) {
+                if (achievements && achievements.success && achievements.achievements && achievements.achievements.length > 0) {
                     achievements.achievements.forEach(achievementId => {
                         const div = document.createElement('div');
                         div.className = 'achievement';
@@ -2030,6 +2039,7 @@
                     achievementsContainer.innerHTML = '<div style="text-align: center; color: #a0a0a0;">Complete workouts to unlock achievements</div>';
                 }
                 
+                // Always hide loading and show content, even with empty data
                 statsLoading.style.display = 'none';
                 statsContent.style.display = 'block';
                 
@@ -2038,7 +2048,7 @@
                 statsLoading.innerHTML = '<div class="error">Failed to load stats. Please try again.</div>';
             }
         }
-
+        
         // Update history display
         async function updateHistory() {
             const userId = getUserId();
@@ -2051,33 +2061,39 @@
                 
                 const history = await apiCall(`/workouts/history/${userId}?limit=20`);
                 
-                if (history && history.success && history.workouts.length > 0) {
+                // Always show history list, even if empty
+                if (history && history.success) {
                     historyList.innerHTML = '';
                     
-                    history.workouts.forEach(workout => {
-                        const div = document.createElement('div');
-                        div.className = 'history-item';
-                        
-                        const date = new Date(workout.endTime || workout.startTime).toLocaleDateString();
-                        const time = new Date(workout.endTime || workout.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        
-                        div.innerHTML = `
-                            <div>
-                                <strong>${date}</strong> at ${time}<br>
-                                <small>${workout.duration}min workout • ${workout.startingWeight}-${workout.maxWeight} lbs</small>
-                            </div>
-                            <div style="text-align: right;">
-                                <strong>${workout.actualTime || 0}min</strong><br>
-                                <small style="color: #10b981;">✓ Complete</small>
-                            </div>
-                        `;
-                        
-                        historyList.appendChild(div);
-                    });
+                    if (history.workouts && history.workouts.length > 0) {
+                        history.workouts.forEach(workout => {
+                            const div = document.createElement('div');
+                            div.className = 'history-item';
+                            
+                            const date = new Date(workout.endTime || workout.startTime).toLocaleDateString();
+                            const time = new Date(workout.endTime || workout.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            
+                            div.innerHTML = `
+                                <div>
+                                    <strong>${date}</strong> at ${time}<br>
+                                    <small>${workout.duration}min workout • ${workout.startingWeight}-${workout.maxWeight} lbs</small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <strong>${workout.actualTime || 0}min</strong><br>
+                                    <small style="color: #10b981;">✓ Complete</small>
+                                </div>
+                            `;
+                            
+                            historyList.appendChild(div);
+                        });
+                    } else {
+                        historyList.innerHTML = '<div style="text-align: center; color: #a0a0a0; padding: 40px;">No workouts yet. Start your first workout to track your progress.</div>';
+                    }
                 } else {
                     historyList.innerHTML = '<div style="text-align: center; color: #a0a0a0; padding: 40px;">No workouts yet. Start your first workout to track your progress.</div>';
                 }
                 
+                // Always hide loading and show content, even with empty data
                 historyLoading.style.display = 'none';
                 historyList.style.display = 'block';
                 
