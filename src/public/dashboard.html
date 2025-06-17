@@ -1358,11 +1358,16 @@
                 const date = new Date(workout.endTime || workout.startTime);
                 const timeAgo = getTimeAgo(date);
                 
+                // Create skips text with appropriate styling
+                const skipsText = workout.skips > 0 
+                    ? `<span style="color: #f59e0b; margin-left: 8px;">• ${workout.skips} skip${workout.skips > 1 ? 's' : ''}</span>` 
+                    : '<span style="color: #10b981; margin-left: 8px;">• No skips</span>';
+                
                 workoutElement.innerHTML = `
                     <div class="workout-info">
                         <h4>Week ${workout.week} • ${workout.duration} minute workout</h4>
                         <p>${date.toLocaleDateString()} • ${timeAgo}</p>
-                        <p>Weight: ${workout.maxWeight} lb${workout.maxWeight > 1 ? 's' : ''} • ${workout.reps} reps per set</p>
+                        <p>Weight: ${workout.maxWeight} lb${workout.maxWeight > 1 ? 's' : ''} • ${workout.reps} reps per set ${skipsText}</p>
                     </div>
                     <div class="workout-stats">
                         <div>${workout.actualTime || 0} min</div>

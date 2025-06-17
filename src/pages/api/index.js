@@ -1,5 +1,3 @@
-// Add these routes to your existing pages/api/index.js file
-
 const logger = require("../../utils/logger.js");
 const database = require("../../utils/database.js");
 const rateLimit = require("express-rate-limit");
@@ -95,7 +93,8 @@ router.post("/workouts/start", workoutLimiter, async function (req, res) {
             startTime: new Date().toISOString(),
             status: 'active',
             exercises: [],
-            totalElapsed: 0
+            totalElapsed: 0,
+            skips: 0 // Initialize skips counter
         };
         
         // Store workout data
@@ -151,9 +150,9 @@ router.put("/workouts/update/:workoutId", workoutLimiter, async function (req, r
 router.post("/workouts/complete/:workoutId", workoutLimiter, async function (req, res) {
     try {
         const { workoutId } = req.params;
-        const { actualTime, maxWeight, completed = true } = req.body;
+        const { actualTime, maxWeight, completed = true, skips = 0 } = req.body;
         
-        logger.info(`[WORKOUT-API] Completing workout: ${workoutId}`);
+        logger.info(`[WORKOUT-API] Completing workout: ${workoutId} with ${skips} skips`);
         
         const workoutData = await database.get(`workout:${workoutId}`);
         if (!workoutData) {
@@ -167,6 +166,7 @@ router.post("/workouts/complete/:workoutId", workoutLimiter, async function (req
         workout.actualTime = parseInt(actualTime);
         workout.maxWeight = parseInt(maxWeight);
         workout.completed = completed;
+        workout.skips = parseInt(skips) || 0; // Store skips count
         workout.endTime = new Date().toISOString();
         
         // Save completed workout
@@ -176,10 +176,11 @@ router.post("/workouts/complete/:workoutId", workoutLimiter, async function (req
         await updateUserStats(workout.userId, {
             totalWorkouts: 1,
             totalTimeMinutes: workout.actualTime,
-            maxWeight: workout.maxWeight
+            maxWeight: workout.maxWeight,
+            skips: workout.skips // Pass skips to stats update
         });
         
-        logger.info(`[WORKOUT-API] Completed workout ${workoutId} for user ${workout.userId}`);
+        logger.info(`[WORKOUT-API] Completed workout ${workoutId} for user ${workout.userId} with ${skips} skips`);
         res.json({ success: true, workout });
         
     } catch (error) {
@@ -200,7 +201,8 @@ router.get("/workouts/stats/:userId", workoutLimiter, async function (req, res) 
         const stats = statsData ? JSON.parse(statsData) : {
             totalWorkouts: 0,
             totalTimeMinutes: 0,
-            maxWeight: 0
+            maxWeight: 0,
+            totalSkips: 0 // Add totalSkips to default stats
         };
         
         // Calculate weekly stats by checking completed workouts this week
@@ -210,6 +212,7 @@ router.get("/workouts/stats/:userId", workoutLimiter, async function (req, res) 
         // Get all workout keys for this user
         const workoutKeys = await database.keys(`workout:${userId}_*`);
         let thisWeekCount = 0;
+        let thisWeekSkips = 0; // Track weekly skips
         
         for (const workoutKey of workoutKeys) {
             const workoutData = await database.get(workoutKey);
@@ -219,6 +222,7 @@ router.get("/workouts/stats/:userId", workoutLimiter, async function (req, res) 
                     const workoutTime = new Date(workout.endTime).getTime();
                     if (workoutTime >= weekStart && workoutTime <= weekEnd) {
                         thisWeekCount++;
+                        thisWeekSkips += (workout.skips || 0); // Add skips for this week
                     }
                 }
             }
@@ -232,7 +236,9 @@ router.get("/workouts/stats/:userId", workoutLimiter, async function (req, res) 
             totalWorkouts: stats.totalWorkouts,
             totalTimeMinutes: stats.totalTimeMinutes,
             maxWeight: stats.maxWeight,
+            totalSkips: stats.totalSkips || 0, // Include total skips in response
             thisWeekWorkouts: thisWeekCount,
+            thisWeekSkips: thisWeekSkips, // Include weekly skips in response
             currentStreak: streak,
             weeklyProgress: `${thisWeekCount}/7`
         };
@@ -274,7 +280,12 @@ router.post("/workouts/achievements/check/:userId", workoutLimiter, async functi
         
         // Get current stats and achievements
         const statsData = await database.get(`user:${userId}:stats`);
-        const stats = statsData ? JSON.parse(statsData) : { totalWorkouts: 0, totalTimeMinutes: 0, maxWeight: 0 };
+        const stats = statsData ? JSON.parse(statsData) : { 
+            totalWorkouts: 0, 
+            totalTimeMinutes: 0, 
+            maxWeight: 0,
+            totalSkips: 0
+        };
         
         const achievementsData = await database.get(`user:${userId}:achievements`);
         const currentAchievements = achievementsData ? JSON.parse(achievementsData) : [];
@@ -373,7 +384,8 @@ async function updateUserStats(userId, increments) {
         const stats = statsData ? JSON.parse(statsData) : {
             totalWorkouts: 0,
             totalTimeMinutes: 0,
-            maxWeight: 0
+            maxWeight: 0,
+            totalSkips: 0 // Add totalSkips to default stats
         };
         
         if (increments.totalWorkouts) {
@@ -386,6 +398,11 @@ async function updateUserStats(userId, increments) {
         
         if (increments.maxWeight && increments.maxWeight > stats.maxWeight) {
             stats.maxWeight = increments.maxWeight;
+        }
+        
+        // Track skips
+        if (increments.skips) {
+            stats.totalSkips = (stats.totalSkips || 0) + increments.skips;
         }
         
         await database.set(`user:${userId}:stats`, JSON.stringify(stats));

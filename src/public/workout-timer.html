@@ -917,6 +917,10 @@
                             <div class="info-label">Remaining</div>
                             <div class="info-value" id="remaining-time">30:00</div>
                         </div>
+                        <div class="info-card">
+                            <div class="info-label">Skips</div>
+                            <div class="info-value" id="skips-count">0</div>
+                        </div>
                     </div>
 
                     <div class="controls">
@@ -1200,7 +1204,8 @@
             isPaused: false,
             intervalId: null,
             lastBeepTime: 0,
-            workoutId: null
+            workoutId: null,
+            skips: 0
         };
 
         const workoutColors = {
@@ -1766,6 +1771,8 @@
             const remainingSeconds = remainingWorkoutTime % 60;
             document.getElementById('remaining-time').textContent =
                 `${remainingMinutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+
+            document.getElementById('skips-count').textContent = workoutData.skips;
         }
 
         // Skip exercise functions
@@ -1782,6 +1789,8 @@
 
         function confirmSkip() {
             document.getElementById('skip-modal').style.display = 'none';
+
+            workoutData.skips++;
             
             // Array of disappointment sounds
             const disappointmentSounds = [
@@ -1921,24 +1930,25 @@
             }
         }
 
-        // Complete workout
+        // 5. Update completeWorkout to send skips to backend
         async function completeWorkout() {
             clearInterval(workoutData.intervalId);
             workoutData.isRunning = false;
-
+        
             // Play completion sound
             playBeep(1500, 500);
-
+        
             const userId = getUserId();
             let backendSuccess = false;
-
+        
             try {
                 // Complete the workout on backend
                 if (workoutData.workoutId) {
                     const result = await apiCall(`/workouts/complete/${workoutData.workoutId}`, 'POST', {
                         actualTime: Math.floor(workoutData.totalElapsed / 60),
                         maxWeight: workoutData.currentWeight,
-                        completed: true
+                        completed: true,
+                        skips: workoutData.skips  // Add skips count to backend data
                     });
                     
                     if (result && result.success) {
@@ -1960,18 +1970,30 @@
             } catch (error) {
                 console.error('Failed to save workout to backend:', error);
             }
-
-            // Show completion message with next week's recommendation
+        
+            // Show completion message with next week's recommendation and skips info
             try {
                 const stats = await apiCall(`/workouts/stats/${userId}`);
                 const newTotal = (stats?.totalWorkouts || 0) + 1;
                 const nextRecommendation = getCurrentRecommendation(newTotal);
                 
-                alert(`🎉 Workout Complete! Great job!\n\nNext workout: ${nextRecommendation.weight} lbs, ${nextRecommendation.reps} reps`);
+                let message = `🎉 Workout Complete! Great job!\n\nNext workout: ${nextRecommendation.weight} lbs, ${nextRecommendation.reps} reps`;
+                
+                // Add skip information to completion message
+                if (workoutData.skips > 0) {
+                    message += `\n\nYou skipped ${workoutData.skips} exercise${workoutData.skips > 1 ? 's' : ''} this workout.`;
+                    if (workoutData.skips > 2) {
+                        message += " Try to reduce skips for better results!";
+                    }
+                } else {
+                    message += "\n\nPerfect! No skips this workout! 💪";
+                }
+                
+                alert(message);
             } catch (error) {
                 alert('🎉 Workout Complete! Great job!');
             }
-
+        
             // Return to setup screen
             document.getElementById('timer-screen').style.display = 'none';
             document.getElementById('setup-screen').style.display = 'block';
@@ -2009,6 +2031,22 @@
                     document.getElementById('max-weight').textContent = (stats.maxWeight || 0) + ' lbs';
                     document.getElementById('current-streak').textContent = stats.currentStreak || 0;
                     document.getElementById('weekly-progress').textContent = stats.weeklyProgress || '0/7';
+                    
+                    // Add total skips to the stats grid
+                    // First check if the element exists, if not, create it
+                    if (!document.getElementById('total-skips')) {
+                        const statsGrid = document.querySelector('.stats-grid');
+                        const skipCard = document.createElement('div');
+                        skipCard.className = 'stat-card';
+                        skipCard.innerHTML = `
+                            <div class="stat-title">Total Skips</div>
+                            <div class="stat-value" id="total-skips">0</div>
+                        `;
+                        statsGrid.appendChild(skipCard);
+                    }
+                    
+                    // Update total skips
+                    document.getElementById('total-skips').textContent = stats.totalSkips || 0;
                 }
                 
                 // Update achievements display
@@ -2049,7 +2087,7 @@
             }
         }
         
-        // Update history display
+                // 6. Update history display to show skip counts
         async function updateHistory() {
             const userId = getUserId();
             const historyList = document.getElementById('history-list');
@@ -2073,10 +2111,15 @@
                             const date = new Date(workout.endTime || workout.startTime).toLocaleDateString();
                             const time = new Date(workout.endTime || workout.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                             
+                            // Create skips badge with appropriate styling
+                            const skipsText = workout.skips > 0 
+                                ? `<span style="color: #f59e0b; font-size: 0.9em;">${workout.skips} skip${workout.skips > 1 ? 's' : ''}</span>` 
+                                : '<span style="color: #10b981; font-size: 0.9em;">No skips</span>';
+                            
                             div.innerHTML = `
                                 <div>
                                     <strong>${date}</strong> at ${time}<br>
-                                    <small>${workout.duration}min workout • ${workout.startingWeight}-${workout.maxWeight} lbs</small>
+                                    <small>${workout.duration}min workout • ${workout.startingWeight}-${workout.maxWeight} lbs • ${skipsText}</small>
                                 </div>
                                 <div style="text-align: right;">
                                     <strong>${workout.actualTime || 0}min</strong><br>
