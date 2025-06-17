@@ -1597,12 +1597,14 @@
             }, 200);
         }
 
-        // Start workout
         async function startWorkout() {
             initAudio(); // Initialize audio context
             
             const userId = getUserId();
             const duration = workoutData.duration;
+            
+            // Set total workout time in seconds
+            workoutData.totalWorkoutTime = duration * 60;
             
             // Get weight - use override or recommended
             let startingWeight;
@@ -1611,7 +1613,7 @@
                 startingWeight = parseInt(overrideWeight);
             } else {
                 // Use recommended weight
-                const stats = await apiCall(`/workouts/stats/${userId}`);
+                const stats = apiCall(`/workouts/stats/${userId}`);
                 const recommendation = getCurrentRecommendation(stats?.totalWorkouts || 0);
                 startingWeight = recommendation.weight;
             }
@@ -1651,7 +1653,6 @@
             workoutData.intervalId = setInterval(updateTimer, 1000);
         }
 
-        // Update timer
         function updateTimer() {
             if (workoutData.isPaused) return;
 
@@ -1673,14 +1674,12 @@
                 nextExercise();
             }
 
-            // Check if workout is complete
-            const totalExercises = Math.floor(workoutData.duration / 2);
-            if (workoutData.currentExercise >= totalExercises) {
+            // Check if workout is complete based on total elapsed time instead of exercise count
+            if (workoutData.totalElapsed >= workoutData.totalWorkoutTime) {
                 completeWorkout();
             }
         }
 
-        // Move to next exercise
         function nextExercise(isSkip = false) {
             // Play completion sound (only when naturally completing, not when skipping)
             if (!isSkip) {
@@ -1688,12 +1687,16 @@
             }
             
             workoutData.currentExercise++;
-            workoutData.timeRemaining = workoutData.exerciseTime;
+            
+            // Calculate remaining time in the workout
+            const timeLeft = workoutData.totalWorkoutTime - workoutData.totalElapsed;
+            
+            // If less than full exercise time remains, use the remaining time
+            // Otherwise use the standard exercise time
+            workoutData.timeRemaining = timeLeft < workoutData.exerciseTime ? timeLeft : workoutData.exerciseTime;
+            
             workoutData.lastBeepTime = 0;
 
-            // Progressive weight system - keep same weight throughout workout
-            // Weight stays constant during a single workout session
-            
             updateTimerDisplay();
             showNextExerciseAnnouncement();
         }
@@ -1717,7 +1720,7 @@
             }
         }
 
-        // Update timer display with workout color
+        // Update the updateTimerDisplay function to use a different exercise rotation
         function updateTimerDisplay() {
             const minutes = Math.floor(workoutData.timeRemaining / 60);
             const seconds = workoutData.timeRemaining % 60;
@@ -1731,9 +1734,19 @@
                 timerElement.classList.remove('warning');
             }
 
-            // Update exercise name and color with rep count
-            const exerciseIndex = workoutData.currentExercise % workoutData.exercises.length;
-            const currentExerciseName = workoutData.exercises[exerciseIndex];
+            // Modified exercise selection logic
+            let currentExerciseName;
+            if (workoutData.currentExercise === 0) {
+                // First exercise is always warmup
+                currentExerciseName = 'Warmup';
+            } else {
+                // After warmup, rotate through the other exercises (Flys, Side Raises, Overhead)
+                // We adjust index to skip Warmup in the exercises array
+                const nonWarmupExercises = ['Flys', 'Side Raises', 'Overhead'];
+                const exerciseIndex = (workoutData.currentExercise - 1) % nonWarmupExercises.length;
+                currentExerciseName = nonWarmupExercises[exerciseIndex];
+            }
+            
             const exerciseColor = workoutColors[currentExerciseName] || '#ffffff'; // Default to white
 
             const currentExerciseElement = document.getElementById('current-exercise');
@@ -1746,7 +1759,6 @@
             }
             
             currentExerciseElement.style.color = exerciseColor;
-
             timerElement.style.color = exerciseColor;
 
             // Update progress bar
@@ -1761,9 +1773,10 @@
             document.getElementById('total-time').textContent =
                 `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
 
-            const totalExercises = Math.floor(workoutData.duration / 2);
+            // Calculate total exercise segments including partial ones
+            const totalExercises = Math.ceil(workoutData.duration / 2);
             document.getElementById('exercise-count').textContent =
-                `${workoutData.currentExercise + 1} / ${totalExercises}`;
+                `${Math.min(workoutData.currentExercise + 1, totalExercises)} / ${totalExercises}`;
 
             // Update remaining workout time
             const remainingWorkoutTime = workoutData.totalWorkoutTime - workoutData.totalElapsed;
@@ -2087,7 +2100,7 @@
             }
         }
         
-                // 6. Update history display to show skip counts
+        // 6. Update history display to show skip counts
         async function updateHistory() {
             const userId = getUserId();
             const historyList = document.getElementById('history-list');
