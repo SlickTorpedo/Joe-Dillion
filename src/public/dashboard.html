@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Workout Dashboard</title>
+    <title>RepForge Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -609,7 +609,7 @@
         <!-- Username Modal -->
         <div id="username-modal" class="username-modal" style="display: none;">
             <div class="username-modal-content">
-                <h2>Welcome to Progressive Workout Dashboard</h2>
+                <h2>Welcome to RepForge Dashboard</h2>
                 <p>Enter your username to view your progress</p>
                 <div class="username-input-group">
                     <input type="text" id="username-input" placeholder="Enter your username" maxlength="20">
@@ -621,12 +621,12 @@
 
         <div class="container">
         <div class="header">
-            <h1>PROGRESSIVE WORKOUT DASHBOARD</h1>
+            <h1>RepForge DASHBOARD</h1>
             <div id="user-info" class="user-info" style="display: none;">
                 <span>Dashboard for <span class="username" id="current-username"></span></span>
                 <button class="change-user-btn" onclick="changeUser()">Change User</button>
             </div>
-            <p>Track your progressive weight training journey</p>
+            <p>Track your RepForge journey</p>
             
             <div class="nav-buttons">
                 <a href="/" class="nav-btn">🏋️ Start Workout</a>
@@ -975,7 +975,7 @@
                     }, 500);
                 } else {
                     setTimeout(() => {
-                        alert(`Welcome to Progressive Workout Dashboard, ${username}! Start with 1 pound and 25 reps per set.`);
+                        alert(`Welcome to RepForge Dashboard, ${username}! Start with 1 pound and 25 reps per set.`);
                     }, 500);
                 }
                 
@@ -1418,7 +1418,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `progressive-workout-data-${username}-${Date.now()}.json`;
+                a.download = `repforge-data-${username}-${Date.now()}.json`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
